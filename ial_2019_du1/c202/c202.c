@@ -63,8 +63,9 @@ void stackInit ( tStack* s ) {
 	if (s == NULL){
 		stackError(SERR_INIT);
 	}
-
-	s->top = -1;
+	else {
+		s->top = -1;
+	}
 	// solved = 0;                      /* V případě řešení, smažte tento řádek! */
 }
 
@@ -74,9 +75,8 @@ int stackEmpty ( const tStack* s ) {
 ** Funkci implementujte jako jediný příkaz. Vyvarujte se zejména konstrukce
 ** typu "if ( true ) b=true else b=false".
 */
-	// pokud s->top je min vic nebo rovny nule, tak vraci 0, jinak
-	int a = ((s->top) && (s->top == 0)) ? 0 : 1;	
-	return a;
+
+	return (s->top != -1) ? 0 : 1;
 
 //   solved = 0;                      /* V případě řešení, smažte tento řádek! */
 }
@@ -90,9 +90,7 @@ int stackFull ( const tStack* s ) {
 **
 ** Funkci implementujte jako jediný příkaz.
 */	
-	int a = (s->top == STACK_SIZE - 1) ? 1 : 0; 
-	return a;
-	//   solved = 0;                      /* V případě řešení, smažte tento řádek! */
+	return (s->top == STACK_SIZE - 1) ? 1 : 0;
 }
 
 void stackTop ( const tStack* s, char* c ) {
@@ -108,10 +106,8 @@ void stackTop ( const tStack* s, char* c ) {
 	if (stackEmpty(s) == 1){
 		stackError(SERR_TOP);
 	}
-	int index = s->top;
 	// kontrola zda li na tomto indexu je definovana hodnota
-	*c = s->arr[index];
-	// solved = 0;                      /* V případě řešení, smažte tento řádek! */
+	*c = s->arr[s->top];
 }
 
 
@@ -127,11 +123,11 @@ void stackPop ( tStack* s ) {
 ** jednoduchost neděláme.
 ** 
 */
-	int index= s->top;
-	if (index != -1){
-		s->arr[index] = NULL;	
+	// Pokud v zásobniku něco je
+	if (s->top != -1){
+		s->arr[s->top] = 0;	
+		s->top--;
 	}
-	//   solved = 0;                      /* V případě řešení, smažte tento řádek! */
 }
 
 
@@ -142,12 +138,19 @@ void stackPush ( tStack* s, char c ) {
 **
 ** Pro ověření, zda je zásobník plný, použijte dříve definovanou
 ** funkci stackFull.
-*/
-	int index = s->top;
-	if (stackFull(s) == 0){
-		s->arr[index] = c;
+*/	
+	if(s == NULL){
+		stackError(SERR_PUSH);
 	}
-	//   solved = 0;                      /* V případě řešení, smažte tento řádek! */
+
+	// Pokud zásobnik není plný
+	if (stackFull(s) == 0){
+		s->top ++;
+		s->arr[s->top] = c;
+	}
+	else {
+		stackError(SERR_PUSH);
+	}
 }
 
 /* Konec c202.c */
