@@ -47,6 +47,31 @@ int solved;
 ** nadeklarovat a používat pomocnou proměnnou typu char.
 */
 void untilLeftPar ( tStack* s, char* postExpr, unsigned* postLen ) {
+    
+    char top_tmp; // remporary variable 
+
+    while(stackEmpty(s) != 1){
+
+        // take symbol from the top of stack 
+        stackTop(s, &top_tmp); 
+
+        // remove element from the top of stack
+        stackPop(s);
+
+        // if symbol is '(', then just remove it  
+        if (top_tmp ==  '('){
+            break;
+        }
+        else
+        {
+            // insert to proprietl place in output expression
+            postExpr[*postLen] = top_tmp;
+        }
+        // increment lenth of output expression 
+        (*postLen) += 1;
+        
+
+    }
 
 }
 
@@ -62,7 +87,41 @@ void untilLeftPar ( tStack* s, char* postExpr, unsigned* postLen ) {
 */
 void doOperation ( tStack* s, char c, char* postExpr, unsigned* postLen ) {
 
+    // if stack is empty 
+    if(stackEmpty(s)){
+        // insert to the top 
+        stackPush(s, c); 
+        return;
+    }
+
+    char top_tmp;
+    stackTop(s, &top_tmp);
+    // if on top of stack is '(', then
+    if (top_tmp == '('){
+        // just insert operator
+        stackPush(s, c);
+        return;
+    }
+
+    // if on the top of stack is operator with lower priority, then
+    if (((top_tmp == '+') || (top_tmp == '-')) && 
+              ((c == '*') || (c == '/'))){
+        // isert operator on the top of stack 
+        stackPush(s, c);
+        return;
+    }
+
+    // insert to propriet place in output expression
+    postExpr[*postLen] = top_tmp;
+    // increment lenth of output expression
+    (*postLen) += 1;
+    // remove inserted operator from stack 
+    stackPop(s);
+
+    // recursive call of this function 
+    doOperation(s, c, postExpr, postLen);
 }
+
 
 /* 
 ** Konverzní funkce infix2postfix.
@@ -110,8 +169,65 @@ void doOperation ( tStack* s, char c, char* postExpr, unsigned* postLen ) {
 */
 char* infix2postfix (const char* infExpr) {
 
-  solved = 0;                        /* V případě řešení smažte tento řádek! */
-  return NULL;                /* V případě řešení můžete smazat tento řádek. */
+    // prepair all resources 
+    // oupput expression 
+    char *outExpr = (char *) malloc(MAX_LEN * sizeof(char));
+    if (outExpr == NULL){
+        printf("error malloc\n");
+        return NULL;
+    }
+    // and stack
+    tStack *stack = (tStack *)malloc(sizeof(tStack));
+    if(stack == NULL){
+        free(outExpr);
+        return NULL;
+    }
+    stackInit(stack);
+
+    unsigned int postLen = 0; // length of ouput expression 
+    char c = *infExpr;
+    int count = 1;
+    while (c != '\0'){
+    // for (char c = *infExpr; c != '\0'; c = *(infExpr)++){
+        if(((c >= 'a') && (c <= 'z')) || // a .. z
+           ((c >= 'A') && (c <= 'Z')) || // A .. Z
+           ((c >= '0') && (c <= '9'))    // 0 .. 9
+           ){
+            // printf("symbol '%s'\n", &c);
+            outExpr[postLen++] = c;
+        }
+        else if( c == '('){
+            // printf("left breket '%s'\n", &c);
+            stackPush(stack, c);
+        }
+        else if (c == ')'){
+            // printf("right breket '%s'\n", &c);
+            untilLeftPar(stack, outExpr, &postLen);
+        }
+        else if((c == '+') || 
+                (c == '-') || 
+                (c == '*') || 
+                (c == '/')){
+                    // printf("operator '%s'\n", &c);
+                    doOperation(stack, c, outExpr, &postLen);
+        }
+        else if(c == '='){
+            while(stackEmpty(stack) != 1){
+                stackTop(stack, &(outExpr[postLen++]));
+                stackPop(stack);
+            }
+            outExpr[postLen++] = '='; 
+            break;
+        }
+
+        // take next sumbol
+        c = *(infExpr + count); 
+        count++;
+    }
+
+    outExpr[postLen++] = '\0'; 
+    free(stack);
+    return outExpr;                /* V případě řešení můžete smazat tento řádek. */
 }
 
 /* Konec c204.c */
