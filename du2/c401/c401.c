@@ -152,11 +152,38 @@ void ReplaceByRightmost (tBSTNodePtr PtrReplaced, tBSTNodePtr *RootPtr) {
 ** Tato pomocná funkce bude použita dále. Než ji začnete implementovat,
 ** přečtěte si komentář k funkci BSTDelete().
 **/
+	tBSTNodePtr right_most;
 
+	if ((*RootPtr)->RPtr == NULL){ // we have most right node
+		right_most = *RootPtr;
+
+		// move value frome right most node
+		PtrReplaced->Key = right_most->Key;
+		PtrReplaced->BSTNodeCont = right_most->BSTNodeCont;
+
+		PtrReplaced->LPtr = NULL;
+		if(right_most->LPtr != NULL){
+			PtrReplaced->LPtr = right_most->LPtr;
+		}
+
+		free(right_most);
+		return;
+	}
+	if((*RootPtr)->RPtr->RPtr == NULL){
+		right_most = (*RootPtr)->RPtr;
+		PtrReplaced->Key = right_most->Key;
+		PtrReplaced->BSTNodeCont = right_most->BSTNodeCont;
+		
+		(*RootPtr)->RPtr = NULL;
+		if (right_most->LPtr){
+			(*RootPtr)->RPtr = right_most->LPtr;
+		}
+
+		free(right_most); 
+		return;
+	}
 	
-
-	 solved = FALSE;		  /* V případě řešení smažte tento řádek! */
-
+	ReplaceByRightmost(PtrReplaced, &((*RootPtr)->RPtr));
 }
 
 void BSTDelete (tBSTNodePtr *RootPtr, char K) 		{
@@ -172,11 +199,81 @@ void BSTDelete (tBSTNodePtr *RootPtr, char K) 		{
 ** pomocné funkce ReplaceByRightmost.
 **/
 
-	
+	if(*RootPtr == NULL){
+		return;
+	}
 
-	 solved = FALSE;		  /* V případě řešení smažte tento řádek! */
+	tBSTNodePtr del_node;
 
+	if (K < (*RootPtr)->Key){
+		del_node = (*RootPtr)->LPtr;
+		if (del_node->LPtr && del_node->RPtr)
+		{
+			// find right most node of left subtree
+			ReplaceByRightmost(del_node, &(del_node->LPtr));
+			return;
+		}
+
+		// correct pointer in parrent
+		if (del_node->LPtr && !del_node->RPtr){
+			(*RootPtr)->LPtr = del_node->LPtr; 
+		}
+		else if (!del_node->LPtr && del_node->RPtr){
+			(*RootPtr)->LPtr = del_node->RPtr;
+		}
+		else{
+			(*RootPtr)->LPtr = NULL; 
+		}
+
+		BSTDelete(&((*RootPtr)->LPtr), K);
+		return;
+	}
+	else if(K > (*RootPtr)->Key){
+		// key of the right subtree is what we need
+		if(((*RootPtr)->RPtr != NULL) && ((*RootPtr)->Key == K)){
+			del_node = (*RootPtr)->RPtr;
+
+			if (del_node->LPtr && del_node->RPtr){
+				ReplaceByRightmost(del_node, &(del_node->LPtr));
+				return;
+			}
+			// correct pointer in parrent
+			else if (del_node->LPtr && !del_node->RPtr){
+				(*RootPtr)->RPtr = del_node->LPtr;
+			}
+			else if (!del_node->LPtr && del_node->RPtr){
+				(*RootPtr)->RPtr = del_node->RPtr;
+			}
+			else{
+				(*RootPtr)->RPtr = NULL;
+			}
+
+			BSTDelete(&((*RootPtr)->RPtr), K);
+			return;
+		}
+	}
+	else{
+		// we found key
+		del_node = *RootPtr;
+
+		if (del_node->LPtr && del_node->RPtr){
+			ReplaceByRightmost(del_node, &(del_node->LPtr));
+			return;
+		}
+
+		if (del_node->LPtr && !del_node->RPtr){
+			*RootPtr = del_node->LPtr; 
+		}
+		else if (!del_node->LPtr && del_node->RPtr){
+			*RootPtr = del_node->RPtr;
+		}
+		else{
+			*RootPtr = NULL; 
+		}
+		free(del_node); 
+	}
 }
+		
 
 void BSTDispose (tBSTNodePtr *RootPtr) {
 /*   ----------
@@ -187,9 +284,16 @@ void BSTDispose (tBSTNodePtr *RootPtr) {
 ** funkce.
 **/
 	
+	if(*RootPtr == NULL){
+		return;
+	}
 
-	 solved = FALSE;		  /* V případě řešení smažte tento řádek! */
+	BSTDispose(&((*RootPtr)->RPtr));
+	BSTDispose(&((*RootPtr)->LPtr));
 
+	free(*RootPtr);
+	// dafault state
+	*RootPtr = NULL;
 }
 
 /* konec c401.c */
